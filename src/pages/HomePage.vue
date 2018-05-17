@@ -4,6 +4,7 @@
       <canvas id="m-canvas" width="540" height="320"></canvas>
     </div>
     <div class="col-6 ">
+      <form v-on:submit.prevent="submitAction">
       <div class="p-2">
         <div class="form-check">
           <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios1" value="action" checked >
@@ -82,8 +83,9 @@
         </div>
       </div>
       <div class="p-2">
-        <button type="button" class="btn btn-secondary float-right">Submit</button>
+        <button type="submit" class="btn btn-secondary float-right">Submit</button>
       </div>
+      </form>
     </div>
   </div>
 </template>
@@ -93,6 +95,17 @@ export default {
   name: 'HomePage',
   data () {
     return {
+      images: [
+        {
+          name: '',
+          url: './static/images/img1.jpg'
+        },
+        {
+          name: '',
+          url: './static/images/img2.jpg'
+        }
+      ],
+      currentImageIndex: 0,
       canvas: null,
       context: null,
       imageObj: new Image(),
@@ -193,7 +206,7 @@ export default {
     },
     draw (x, y, w, h, isImageChanged) {
       if (isImageChanged) {
-        this.imageObj.src = './static/images/img1.jpg'
+        this.imageObj.src = this.images[this.currentImageIndex].url
         this.imageObj.onload = function () {
           this.context.drawImage(this.imageObj, 0, 0, this.canvas.width, this.canvas.height)
         }.bind(this)
@@ -207,6 +220,15 @@ export default {
     },
     removeAction (index) {
       this.actions.splice(index, 1)
+    },
+    submitAction () {
+      if (this.currentImageIndex >= this.images.length - 1 || this.actions.length < 2) {
+        console.log(this.currentImageIndex)
+        return
+      }
+      this.currentImageIndex++
+      this.actions = []
+      this.draw(0, 0, 0, 0, true)
     }
   }
 }

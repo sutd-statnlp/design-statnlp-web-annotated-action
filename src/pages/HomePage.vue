@@ -9,7 +9,7 @@
         <div class="form-check">
           <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios1" value="action" checked >
           <label class="form-check-label" for="radios1">
-            At least 2 Actions can be annotated in the image
+            At least 2 Actions can be annotated in the image, start by drawing bounding box on the image
           </label>
         </div>
         <p></p>
@@ -53,9 +53,9 @@
             </div>
             <div class="col-10">
               <div class="form-check">
-                <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason1" value="Too crowed" checked>
+                <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason1" value="Too crowded" checked>
                 <label class="form-check-label" for="radiosReason2">
-                  Too crowed
+                  Too crowded
                 </label>
               </div>
               <div class="form-check">
@@ -73,10 +73,9 @@
                     </label>
                   </div>
                   <div class="col-6">
-                      <input id="inputOther" type="text" class="form-control" :disabled="reason != 'other'">
+                      <input id="inputOther" v-model="reasonOther" type="text" class="form-control" :disabled="reason != 'other'">
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
@@ -84,6 +83,7 @@
       </div>
       <div class="p-2">
         <button type="submit" class="btn btn-secondary float-right">Submit</button>
+        <button type="button" class="btn btn-secondary" @click="saveJson">Save JSON</button>
       </div>
       </form>
     </div>
@@ -91,18 +91,28 @@
 </template>
 
 <script>
+import DownloadService from '@/services/download-service'
+
 export default {
   name: 'HomePage',
   data () {
     return {
       images: [
         {
-          name: '',
-          url: './static/images/img1.jpg'
+          id: '1',
+          name: 'img1.jpg',
+          w: 3648,
+          h: 2736,
+          actions: [],
+          reason: ''
         },
         {
-          name: '',
-          url: './static/images/img2.jpg'
+          id: '2',
+          name: 'img2.jpg',
+          w: 4608,
+          h: 3456,
+          actions: [],
+          reason: ''
         }
       ],
       currentImageIndex: 0,
@@ -119,7 +129,8 @@ export default {
       },
       mousedown: false,
       radioOption: 'action',
-      reason: 'Too crowed'
+      reason: 'Too crowded',
+      reasonOther: ''
     }
   },
   mounted () {
@@ -206,7 +217,10 @@ export default {
     },
     draw (x, y, w, h, isImageChanged) {
       if (isImageChanged) {
-        this.imageObj.src = this.images[this.currentImageIndex].url
+        let image = this.images[this.currentImageIndex]
+        this.imageObj.src = './static/images/' + image.name
+        this.context.canvas.width = image.w / 16 * 1.6
+        this.context.canvas.height = image.h / 16 * 1.6
         this.imageObj.onload = function () {
           this.context.drawImage(this.imageObj, 0, 0, this.canvas.width, this.canvas.height)
         }.bind(this)
@@ -220,15 +234,28 @@ export default {
     },
     removeAction (index) {
       this.actions.splice(index, 1)
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.context.drawImage(this.imageObj, 0, 0, this.canvas.width, this.canvas.height)
     },
     submitAction () {
       if (this.currentImageIndex >= this.images.length - 1 || this.actions.length < 2) {
-        console.log(this.currentImageIndex)
         return
       }
+      this.saveData()
       this.currentImageIndex++
       this.actions = []
       this.draw(0, 0, 0, 0, true)
+    },
+    saveData () {
+      if (this.radioOption === 'action') {
+        this.images[this.currentImageIndex].actions = this.actions
+      } else {
+        this.images[this.currentImageIndex].reason = this.reason === 'other' ? this.reasonOther : this.reason
+      }
+    },
+    saveJson () {
+      this.saveData()
+      DownloadService.downloadJson(this.images, 'images.json')
     }
   }
 }

@@ -9,7 +9,7 @@
         <div class="form-check">
           <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios1" value="action" checked >
           <label class="form-check-label" for="radios1">
-            At least 2 Actions can be annotated in the image, start by drawing bounding box on the image
+            At least 2 Actions can be annotated in the image (start by drawing bounding box on the image)
           </label>
         </div>
         <p></p>
@@ -54,21 +54,21 @@
             <div class="col-10">
               <div class="form-check">
                 <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason1" value="Too crowded" checked>
-                <label class="form-check-label" for="radiosReason2">
+                <label class="form-check-label" for="radiosReason1">
                   Too crowded
                 </label>
               </div>
               <div class="form-check">
                 <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason2" value="No action/mutilple actions happening">
                 <label class="form-check-label" for="radiosReason2">
-                  No action/mutilple actions happening
+                  Not sufficient enough actions happening for annotation
                 </label>
               </div>
               <div class="form-check">
                 <div class="row">
                   <div class="col-2">
-                    <input v-model="reason" class="form-check-input" type="radio" name="radiosReason" value="other" id="radiosReason2">
-                    <label class="form-check-label" for="radiosReason2">
+                    <input v-model="reason" class="form-check-input" type="radio" name="radiosReason" value="other" id="radiosReason3">
+                    <label class="form-check-label" for="radiosReason3">
                       Other
                     </label>
                   </div>
@@ -97,12 +97,14 @@ export default {
   name: 'HomePage',
   data () {
     return {
+      resize: 8,
       images: [
         {
           id: '1',
           name: 'img1.jpg',
           w: 3648,
           h: 2736,
+          hasActions: false,
           actions: [],
           reason: ''
         },
@@ -111,6 +113,7 @@ export default {
           name: 'img2.jpg',
           w: 4608,
           h: 3456,
+          hasActions: false,
           actions: [],
           reason: ''
         }
@@ -140,17 +143,15 @@ export default {
 
     let coordinates = [
       {
-        x: 20,
-        y: 30,
-        w: 40,
-        h: 42
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0
       }
     ]
     this.drawByCoordinateIndex(coordinates, 0)
     this.context.clearRect(0, 0, 400, 300)
 
-    let canvasx = $(this.canvas).offset().left
-    let canvasy = $(this.canvas).offset().top
     let lastMouseX = 0
     let lastMouseY = 0
     let mousex = 0
@@ -162,8 +163,9 @@ export default {
       if (this.radioOption !== 'action') {
         return
       }
-      lastMouseX = parseInt(e.clientX - canvasx)
-      lastMouseY = parseInt(e.clientY - canvasy)
+      let rect = this.canvas.getBoundingClientRect()
+      lastMouseX = parseInt(e.clientX - rect.left)
+      lastMouseY = parseInt(e.clientY - rect.top)
       this.mousedown = true
     }.bind(this))
 
@@ -188,8 +190,9 @@ export default {
       if (this.radioOption !== 'action') {
         return
       }
-      mousex = parseInt(e.clientX - canvasx)
-      mousey = parseInt(e.clientY - canvasy)
+      let rect = this.canvas.getBoundingClientRect()
+      mousex = parseInt(e.clientX - rect.left)
+      mousey = parseInt(e.clientY - rect.top)
       if (this.mousedown) {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
         this.context.beginPath()
@@ -198,10 +201,10 @@ export default {
         this.draw(lastMouseX, lastMouseY, width, height)
         this.currentAction = {
           label: '',
-          x1: lastMouseX,
-          y1: lastMouseY,
-          x2: mousex,
-          y2: mousey
+          x1: lastMouseX * this.resize,
+          y1: lastMouseY * this.resize,
+          x2: mousex * this.resize,
+          y2: mousey * this.resize
         }
       }
     }.bind(this))
@@ -209,18 +212,18 @@ export default {
   methods: {
     drawByCoordinateIndex (coordinates, index) {
       let object = coordinates[index]
-      let x = object.x / 2
-      let y = object.y / 2
-      let w = object.w / 2
-      let h = object.h / 2
+      let x = object.x
+      let y = object.y
+      let w = object.w
+      let h = object.h
       this.draw(x, y, w, h)
     },
     draw (x, y, w, h, isImageChanged) {
       if (isImageChanged) {
         let image = this.images[this.currentImageIndex]
         this.imageObj.src = './static/images/' + image.name
-        this.context.canvas.width = image.w / 16 * 1.6
-        this.context.canvas.height = image.h / 16 * 1.6
+        this.context.canvas.width = image.w / this.resize
+        this.context.canvas.height = image.h / this.resize
         this.imageObj.onload = function () {
           this.context.drawImage(this.imageObj, 0, 0, this.canvas.width, this.canvas.height)
         }.bind(this)
@@ -238,13 +241,15 @@ export default {
       this.context.drawImage(this.imageObj, 0, 0, this.canvas.width, this.canvas.height)
     },
     submitAction () {
-      if (this.currentImageIndex >= this.images.length - 1 || this.actions.length < 2) {
+      if (this.radioOption === 'action' && (this.currentImageIndex >= this.images.length - 1 || this.actions.length < 2)) {
+        return
+      }
+      if (this.radioOption === 'reason' && (this.reason === 'other' && this.reasonOther.trim() === '')) {
         return
       }
       this.saveData()
       this.currentImageIndex++
-      this.actions = []
-      this.draw(0, 0, 0, 0, true)
+      this.loadDefault()
     },
     saveData () {
       if (this.radioOption === 'action') {
@@ -256,6 +261,14 @@ export default {
     saveJson () {
       this.saveData()
       DownloadService.downloadJson(this.images, 'images.json')
+    },
+    loadDefault () {
+      this.mousedown = false
+      this.radioOption = 'action'
+      this.reason = 'Too crowded'
+      this.reasonOther = ''
+      this.draw(0, 0, 0, 0, true)
+      this.actions = []
     }
   }
 }
@@ -266,12 +279,12 @@ export default {
   height: 30px;
 }
 .input-cordinate {
-  width: 50px;
+  width: 60px;
 }
 .input-label {
-  width: 140px;
+  width: 100px;
   margin-left: 20px;
-  margin-right: 20px;
+  margin-right: 10px;
 }
 .btn-rm-action {
   margin-right: 20px;

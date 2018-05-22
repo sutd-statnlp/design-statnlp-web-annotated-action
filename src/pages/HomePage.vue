@@ -1,9 +1,9 @@
 <template>
   <div class="m-home row">
-    <div class="col-6  p-2">
+    <div class="col-md-6 col-sm-12 p-2">
       <canvas id="m-canvas" width="540" height="320"></canvas>
     </div>
-    <div class="col-6 ">
+    <div class="col-md-6  col-sm-12">
       <form v-on:submit.prevent="submitAction">
       <div class="p-2">
         <div class="form-check">
@@ -16,7 +16,7 @@
         <div class="border p-2" :class="radioOption == 'action' ? '' : 'disabledDiv'">
           <div class="pt-1" v-if="mousedown">
             <span>Action{{actions.length + 1}}</span>
-            <input type="text" placeholder="label" class="input-label" value="holding" v-model="currentAction.label">
+            <input type="text" placeholder="label" class="input-label" v-model="currentAction.label">
             <input type="number" placeholder="x1" value="20" class="input-cordinate" v-model="currentAction.x1">
             <input type="number" placeholder="y1" value="30" class="input-cordinate" v-model="currentAction.y1">
             <input type="number" placeholder="x2" value="40" class="input-cordinate" v-model="currentAction.x2">
@@ -27,11 +27,11 @@
           </div>
           <div class="pt-1" v-for="(item, index) in actions" :key="index">
             <span>Action{{actions.length - index}}</span>
-            <input type="text" placeholder="label" class="input-label" value="holding" v-model="item.label">
-            <input type="number" placeholder="x1" value="20" class="input-cordinate" v-model="item.x1">
-            <input type="number" placeholder="y1" value="30" class="input-cordinate" v-model="item.y1">
-            <input type="number" placeholder="x2" value="40" class="input-cordinate" v-model="item.x2">
-            <input type="number" placeholder="y2" value="42" class="input-cordinate" v-model="item.y2">
+            <input type="text" placeholder="label" class="input-label m-input-label" v-model="item.label" required>
+            <input type="number" placeholder="x1" min="0" class="input-cordinate" v-model="item.x1">
+            <input type="number" placeholder="y1" min="0" class="input-cordinate" v-model="item.y1">
+            <input type="number" placeholder="x2" min="0" class="input-cordinate" v-model="item.x2">
+            <input type="number" placeholder="y2" min="0" class="input-cordinate" v-model="item.y2">
             <button type="button" class="close btn-rm-action" aria-label="Close" @click="removeAction(index)">
               <span aria-hidden="true" class="text-danger">&times;</span>
             </button>
@@ -73,7 +73,7 @@
                     </label>
                   </div>
                   <div class="col-6">
-                      <input id="inputOther" v-model="reasonOther" type="text" class="form-control" :disabled="reason != 'other'">
+                      <input id="inputOther" v-model="reasonOther" type="text" class="form-control" :disabled="reason != 'other'" :required="reason == 'other' ? true : false">
                   </div>
                 </div>
               </div>
@@ -84,6 +84,11 @@
       <div class="p-2">
         <button type="submit" class="btn btn-secondary float-right">Submit</button>
         <button type="button" class="btn btn-secondary" @click="saveJson">Save JSON</button>
+      </div>
+      <div class="p-2">
+        <div v-if="error" class="alert alert-warning" role="alert">
+          {{error}}
+        </div>
       </div>
       </form>
     </div>
@@ -133,7 +138,8 @@ export default {
       mousedown: false,
       radioOption: 'action',
       reason: 'Too crowded',
-      reasonOther: ''
+      reasonOther: '',
+      error: null
     }
   },
   mounted () {
@@ -241,10 +247,15 @@ export default {
       this.context.drawImage(this.imageObj, 0, 0, this.canvas.width, this.canvas.height)
     },
     submitAction () {
-      if (this.radioOption === 'action' && (this.currentImageIndex >= this.images.length - 1 || this.actions.length < 2)) {
+      if (this.radioOption === 'action' && this.actions.length < 2) {
+        this.error = 'At least 2 actions !'
         return
       }
-      if (this.radioOption === 'reason' && (this.reason === 'other' && this.reasonOther.trim() === '')) {
+      if (this.currentImageIndex >= this.images.length - 1) {
+        return
+      }
+      if (!this.validateCoordinates()) {
+        this.error = 'Coordinates (0,0,0,0) is not an accepted !'
         return
       }
       this.saveData()
@@ -254,8 +265,10 @@ export default {
     saveData () {
       if (this.radioOption === 'action') {
         this.images[this.currentImageIndex].actions = this.actions
+        this.images[this.currentImageIndex].hasActions = true
       } else {
         this.images[this.currentImageIndex].reason = this.reason === 'other' ? this.reasonOther : this.reason
+        this.images[this.currentImageIndex].hasActions = false
       }
     },
     saveJson () {
@@ -263,12 +276,33 @@ export default {
       DownloadService.downloadJson(this.images, 'images.json')
     },
     loadDefault () {
+      this.error = null
       this.mousedown = false
       this.radioOption = 'action'
       this.reason = 'Too crowded'
       this.reasonOther = ''
       this.draw(0, 0, 0, 0, true)
       this.actions = []
+    },
+    validateCoordinates () {
+      let result = true
+      for (let index = 0; index < this.actions.length; index++) {
+        const a = this.actions[index]
+        if (a.x1 === 0 && a.y1 === 0 && a.x2 === 0 && a.y2 === 0) {
+          result = false
+          break
+        }
+      }
+      return result
+    }
+  },
+  watch: {
+    radioOption (value) {
+      if (value === 'action') {
+        $('.m-input-label').attr('required', true)
+      } else {
+        $('.m-input-label').attr('required', false)
+      }
     }
   }
 }
@@ -279,15 +313,14 @@ export default {
   height: 30px;
 }
 .input-cordinate {
-  width: 60px;
+  width: 13.6%;
 }
 .input-label {
-  width: 100px;
-  margin-left: 20px;
+  width: 18%;
   margin-right: 10px;
 }
 .btn-rm-action {
-  margin-right: 20px;
+  margin-right: 2px;
   font-size: 1.8em;
 
 }

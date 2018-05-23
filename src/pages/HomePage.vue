@@ -1,97 +1,101 @@
 <template>
-  <div class="m-home row">
-    <div class="col-md-6 col-sm-12 p-2">
-      <canvas id="m-canvas" width="540" height="320"></canvas>
+  <div class="m-home">
+    <form v-on:submit.prevent="submitAction">
+    <div class="row justify-content-center">
+        <canvas id="m-canvas" width="540" height="320"></canvas>
     </div>
-    <div class="col-md-6  col-sm-12">
-      <form v-on:submit.prevent="submitAction">
-      <div class="p-2">
-        <div class="form-check">
-          <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios1" value="action" checked >
-          <label class="form-check-label" for="radios1">
-            At least 2 Actions can be annotated in the image (start by drawing bounding box on the image)
-          </label>
-        </div>
-        <p></p>
-        <div class="border p-2" :class="radioOption == 'action' ? '' : 'disabledDiv'">
-          <div class="pt-1" v-if="mousedown">
-            <span>Action{{actions.length + 1}}</span>
-            <input type="text" placeholder="label" class="input-label" v-model="currentAction.label">
-            <input type="number" placeholder="x1" value="20" class="input-cordinate" v-model="currentAction.x1">
-            <input type="number" placeholder="y1" value="30" class="input-cordinate" v-model="currentAction.y1">
-            <input type="number" placeholder="x2" value="40" class="input-cordinate" v-model="currentAction.x2">
-            <input type="number" placeholder="y2" value="42" class="input-cordinate" v-model="currentAction.y2">
-            <button type="button" class="close btn-rm-action" aria-label="Close" @click="removeAction(index)">
-              <span aria-hidden="true" class="text-danger">&times;</span>
-            </button>
+    <div class="row">
+      <div class="col-md-6 col-sm-12">
+         <div class="p-2">
+          <div class="form-check">
+            <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios1" value="action" checked >
+            <label class="form-check-label" for="radios1">
+              At least 2 Actions can be annotated in the image (start by drawing bounding box on the image)
+            </label>
           </div>
-          <div class="pt-1" v-for="(item, index) in actions" :key="index">
-            <span>Action{{actions.length - index}}</span>
-            <input type="text" placeholder="label" class="input-label m-input-label" v-model="item.label" required>
-            <input type="number" placeholder="x1" min="0" class="input-cordinate" v-model="item.x1">
-            <input type="number" placeholder="y1" min="0" class="input-cordinate" v-model="item.y1">
-            <input type="number" placeholder="x2" min="0" class="input-cordinate" v-model="item.x2">
-            <input type="number" placeholder="y2" min="0" class="input-cordinate" v-model="item.y2">
-            <button type="button" class="close btn-rm-action" aria-label="Close" @click="removeAction(index)">
-              <span aria-hidden="true" class="text-danger">&times;</span>
-            </button>
+          <p></p>
+          <div class="border p-2" :class="radioOption == 'action' ? '' : 'disabledDiv'">
+            <div class="pt-1" v-if="mousedown">
+              <span>Action{{actions.length + 1}}</span>
+              <input type="text" placeholder="label" class="input-label" v-model="currentAction.label">
+              <input type="number" placeholder="x1" value="20" class="input-cordinate" v-model="currentAction.x1">
+              <input type="number" placeholder="y1" value="30" class="input-cordinate" v-model="currentAction.y1">
+              <input type="number" placeholder="x2" value="40" class="input-cordinate" v-model="currentAction.x2">
+              <input type="number" placeholder="y2" value="42" class="input-cordinate" v-model="currentAction.y2">
+              <button type="button" class="close btn-rm-action" aria-label="Close" @click="removeAction(index)">
+                <span aria-hidden="true" class="text-danger">&times;</span>
+              </button>
+            </div>
+            <div class="pt-1" v-for="(item, index) in actions" :key="index">
+              <span>Action{{actions.length - index}}</span>
+              <input type="text" placeholder="label" class="input-label m-input-label" v-model="item.label" required>
+              <input type="number" placeholder="x1" min="0" class="input-cordinate" v-model="item.x1">
+              <input type="number" placeholder="y1" min="0" class="input-cordinate" v-model="item.y1">
+              <input type="number" placeholder="x2" min="0" class="input-cordinate" v-model="item.x2">
+              <input type="number" placeholder="y2" min="0" class="input-cordinate" v-model="item.y2">
+              <button type="button" class="close btn-rm-action" aria-label="Close" @click="removeAction(index)">
+                <span aria-hidden="true" class="text-danger">&times;</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="p-2">
-        <div class="form-check">
-          <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios2" value="reason">
-          <label class="form-check-label" for="radios2">
-            Actions cannot be annotated in the image
-          </label>
-        </div>
-        <p></p>
-        <div class="border p-2" :class="radioOption == 'reason' ? '' : 'disabledDiv'">
-          <div class="row">
-            <div class="col-2">
-              <span>Reason</span>
-            </div>
-            <div class="col-10">
-              <div class="form-check">
-                <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason1" value="Too crowded" checked>
-                <label class="form-check-label" for="radiosReason1">
-                  Too crowded
-                </label>
+      <div class="col-md-6 col-sm-12">
+        <div class="p-2">
+          <div class="form-check">
+            <input v-model="radioOption" class="form-check-input" type="radio" name="radios" id="radios2" value="reason">
+            <label class="form-check-label" for="radios2">
+              Actions cannot be annotated in the image
+            </label>
+          </div>
+          <p></p>
+          <div class="border p-2" :class="radioOption == 'reason' ? '' : 'disabledDiv'">
+            <div class="row">
+              <div class="col-2">
+                <span>Reason</span>
               </div>
-              <div class="form-check">
-                <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason2" value="No action/mutilple actions happening">
-                <label class="form-check-label" for="radiosReason2">
-                  Not sufficient enough actions happening for annotation
-                </label>
-              </div>
-              <div class="form-check">
-                <div class="row">
-                  <div class="col-2">
-                    <input v-model="reason" class="form-check-input" type="radio" name="radiosReason" value="other" id="radiosReason3">
-                    <label class="form-check-label" for="radiosReason3">
-                      Other
-                    </label>
-                  </div>
-                  <div class="col-6">
-                      <input id="inputOther" v-model="reasonOther" type="text" class="form-control" :disabled="reason != 'other'" :required="reason == 'other' ? true : false">
+              <div class="col-10">
+                <div class="form-check">
+                  <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason1" value="Too crowded" checked>
+                  <label class="form-check-label" for="radiosReason1">
+                    Too crowded
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input  v-model="reason" class="form-check-input" type="radio" name="radiosReason" id="radiosReason2" value="No action/mutilple actions happening">
+                  <label class="form-check-label" for="radiosReason2">
+                    Not sufficient enough actions happening for annotation
+                  </label>
+                </div>
+                <div class="form-check">
+                  <div class="row">
+                    <div class="col-2">
+                      <input v-model="reason" class="form-check-input" type="radio" name="radiosReason" value="other" id="radiosReason3">
+                      <label class="form-check-label" for="radiosReason3">
+                        Other
+                      </label>
+                    </div>
+                    <div class="col-6">
+                        <input id="inputOther" v-model="reasonOther" type="text" class="form-control" :disabled="reason != 'other'" :required="reason == 'other' ? true : false">
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="p-2">
-        <button type="submit" class="btn btn-secondary float-right">Submit</button>
-        <button type="button" class="btn btn-secondary" @click="saveJson">Save JSON</button>
-      </div>
-      <div class="p-2">
-        <div v-if="error" class="alert alert-warning" role="alert">
-          {{error}}
+        <div class="p-2">
+          <button type="submit" class="btn btn-secondary float-right">Submit</button>
+          <button type="button" class="btn btn-secondary" @click="saveJson">Save JSON</button>
+        </div>
+        <div class="p-2">
+          <div v-if="error" class="alert alert-warning" role="alert">
+            {{error}}
+          </div>
         </div>
       </div>
-      </form>
     </div>
+    </form>
   </div>
 </template>
 
@@ -102,7 +106,7 @@ export default {
   name: 'HomePage',
   data () {
     return {
-      resize: 8,
+      resize: 6,
       images: [
         {
           id: '1',

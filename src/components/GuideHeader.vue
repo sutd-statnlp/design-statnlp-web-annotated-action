@@ -1,9 +1,9 @@
 <template>
   <div class="m-guide-header row p-2">
     <div class="col p-2">
-      <h4>
+      <h6>
         <strong>Annotate actions</strong>
-      </h4>
+      </h6>
       <span>
         In this HIT you will annotate <strong>actions</strong> of this image.
       </span>
@@ -32,5 +32,8 @@ export default {
 <style scoped>
   .m-guide-header .col {
     border: 4px solid #666666;
+  }
+  .m-guide-header {
+    font-size: 0.8em;
   }
 </style>

@@ -125,6 +125,78 @@ export default {
           hasActions: false,
           actions: [],
           reason: ''
+        },
+        {
+          id: '8',
+          name: 'img8.jpg',
+          w: 1024,
+          h: 768,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '19',
+          name: 'img19.jpg',
+          w: 2700,
+          h: 1801,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '22',
+          name: 'img22.jpg',
+          w: 1500,
+          h: 1000,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '28',
+          name: 'img28.jpg',
+          w: 7360,
+          h: 4912,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '31',
+          name: 'img31.jpg',
+          w: 1024,
+          h: 768,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '39',
+          name: 'img39.jpg',
+          w: 2000,
+          h: 1329,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '197',
+          name: 'img197.jpg',
+          w: 592,
+          h: 394,
+          hasActions: false,
+          actions: [],
+          reason: ''
+        },
+        {
+          id: '217',
+          name: 'img217.jpg',
+          w: 1024,
+          h: 819,
+          hasActions: false,
+          actions: [],
+          reason: ''
         }
       ],
       currentImageIndex: 0,
@@ -228,10 +300,22 @@ export default {
       let h = object.h
       this.draw(x, y, w, h)
     },
+    configCanvasResize (imageWidth) {
+      if (imageWidth <= 1000) {
+        this.resize = 1
+      } else if (imageWidth <= 2000) {
+        this.resize = 2
+      } else if (imageWidth >= 6000) {
+        this.resize = 10
+      } else {
+        this.resize = 6
+      }
+    },
     draw (x, y, w, h, isImageChanged) {
       if (isImageChanged) {
         let image = this.images[this.currentImageIndex]
         this.imageObj.src = './static/images/' + image.name
+        this.configCanvasResize(image.w)
         this.context.canvas.width = image.w / this.resize
         this.context.canvas.height = image.h / this.resize
         this.imageObj.onload = function () {

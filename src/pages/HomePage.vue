@@ -281,7 +281,7 @@ export default {
       // params.append('assignmentId', 'value1')
       // params.append('hitId', 'value2')
       // params.append('turkSubmitTo', 'value2')
-      // params.append('workerId', 'value2')
+      params.append('workerId', 'A12C0HJJ22VV4M')
       params.append('data', JSON.stringify(this.images))
       axios.post('https://workersandbox.mturk.com/mturk/externalSubmit', params)
         .then(function (response) {

@@ -101,104 +101,14 @@
 
 <script>
 import DownloadService from '@/services/download-service'
-
+import ImageService from '@/services/image-service'
+import axios from 'axios'
 export default {
   name: 'HomePage',
   data () {
     return {
       resize: 6,
-      images: [
-        {
-          id: '1',
-          name: 'img1.jpg',
-          w: 3648,
-          h: 2736,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '2',
-          name: 'img2.jpg',
-          w: 4608,
-          h: 3456,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '8',
-          name: 'img8.jpg',
-          w: 1024,
-          h: 768,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '19',
-          name: 'img19.jpg',
-          w: 2700,
-          h: 1801,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '22',
-          name: 'img22.jpg',
-          w: 1500,
-          h: 1000,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '28',
-          name: 'img28.jpg',
-          w: 7360,
-          h: 4912,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '31',
-          name: 'img31.jpg',
-          w: 1024,
-          h: 768,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '39',
-          name: 'img39.jpg',
-          w: 2000,
-          h: 1329,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '197',
-          name: 'img197.jpg',
-          w: 592,
-          h: 394,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        },
-        {
-          id: '217',
-          name: 'img217.jpg',
-          w: 1024,
-          h: 819,
-          hasActions: false,
-          actions: [],
-          reason: ''
-        }
-      ],
+      images: [],
       currentImageIndex: 0,
       canvas: null,
       context: null,
@@ -216,6 +126,13 @@ export default {
       reason: 'Too crowded',
       reasonOther: '',
       error: null
+    }
+  },
+  created () {
+    this.images = ImageService.getAll()
+    let imageId = this.$route.params.imageId
+    if (imageId) {
+      this.currentImageIndex = ImageService.getIndexById(imageId)
     }
   },
   mounted () {
@@ -347,8 +264,8 @@ export default {
         return
       }
       this.saveData()
-      this.currentImageIndex++
-      this.loadDefault()
+      this.postData()
+      this.$router.push(`/img/${this.images[this.currentImageIndex + 1].id}`)
     },
     saveData () {
       if (this.radioOption === 'action') {
@@ -358,6 +275,21 @@ export default {
         this.images[this.currentImageIndex].reason = this.reason === 'other' ? this.reasonOther : this.reason
         this.images[this.currentImageIndex].hasActions = false
       }
+    },
+    postData () {
+      const params = new URLSearchParams()
+      // params.append('assignmentId', 'value1')
+      // params.append('hitId', 'value2')
+      // params.append('turkSubmitTo', 'value2')
+      // params.append('workerId', 'value2')
+      params.append('data', JSON.stringify(this.images))
+      axios.post('https://workersandbox.mturk.com/mturk/externalSubmit', params)
+        .then(function (response) {
+          console.log(response)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
     },
     saveJson () {
       this.saveData()
@@ -391,6 +323,10 @@ export default {
       } else {
         $('.m-input-label').attr('required', false)
       }
+    },
+    '$route' (to, from) {
+      this.currentImageIndex = ImageService.getIndexById(to.params.imageId)
+      this.loadDefault()
     }
   }
 }

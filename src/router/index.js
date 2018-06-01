@@ -10,6 +10,11 @@ export default new Router({
       path: '/',
       name: 'HomePage',
       component: HomePage
+    },
+    {
+      path: '/img/:imageId',
+      name: 'HomePageWithImageID',
+      component: HomePage
     }
   ]
 })

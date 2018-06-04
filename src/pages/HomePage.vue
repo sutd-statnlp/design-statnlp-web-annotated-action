@@ -277,8 +277,9 @@ export default {
       }
     },
     postData () {
+      let url = new URL(window.location.href)
       const params = new URLSearchParams()
-      params.append('assignmentId', window.location.href)
+      params.append('assignmentId', url.searchParams.get('assignment_id'))
       // params.append('hitId', 'value2')
       // params.append('turkSubmitTo', 'value2')
       params.append('workerId', 'A12C0HJJ22VV4M')
